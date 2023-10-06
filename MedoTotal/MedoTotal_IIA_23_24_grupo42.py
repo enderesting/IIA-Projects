@@ -38,7 +38,7 @@ class MedoTotal(Problem):
         pacman_pos_ini = self.find_symbol(self.grid,'F')[0]
         pill_pos_ini = self.find_symbol(self.grid,'*')
         #state
-        self.initial = EstadoFantasma(infoDetails[1],pacman_pos_ini,pill_pos_ini,{})
+        self.initial = EstadoFantasma(infoDetails[1],pacman_pos_ini,pill_pos_ini,{pacman_pos_ini:1})
 
 
     def find_symbol(grid,symbol):
