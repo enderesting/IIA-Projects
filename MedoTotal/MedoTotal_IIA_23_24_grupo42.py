@@ -17,20 +17,46 @@ mundoStandard = parametros + "\n" + grelha
 
 class EstadoFantasma:
 
-    def __init__(self, info):
-        infoDetails = info.split("\n", 3)
-        self.objective = infoDetails[0]
-        self.fear = infoDetails[1]
-        self.power = infoDetails[2]
-        self.map = infoDetails[3]
+    def __init__(self, fear, pac_pos, pill_pos, path):
+    # self.fear,self.pacman_pos,self.pill_pos,self.path
+        self.fear, self.pacman_pos, self.pill_pos, self.path = fear, pac_pos, pill_pos, path
 
 
 class MedoTotal(Problem):
-
+    
     def __init__(self, situacaoInicial=mundoStandard):
-        self.initial
+        infoDetails = Problem.split('\n', 3)
+        #params
+        self.objective = infoDetails[0]
+        # self.fear = infoDetails[1]
+        self.power = infoDetails[2]
+        #grid
+        lines = infoDetails[3].split('\n')[:-1]
+        self.grid = [(line.replace(" ", "")) for line in lines]
+        #positions
+        self.ghost_pos = self.find_symbol(self.grid,'F')[0]
+        pacman_pos_ini = self.find_symbol(self.grid,'F')[0]
+        pill_pos_ini = self.find_symbol(self.grid,'*')
+        #state
+        self.initial = EstadoFantasma(infoDetails[1],pacman_pos_ini,pill_pos_ini,{})
+
+
+    def find_symbol(grid,symbol):
+        """
+        Returns a list of positions
+            grid: 2d array
+            symbol: the symbol to find 
+        """
+        list_of_pos = []
+        for i in range(len(grid)):
+            for j in range(len(grid[i])):
+                if (symbol == grid[i][j]):
+                    list_of_pos.append((j,i))
+        return list_of_pos
+
 
     def actions(self, state):
+        
         pass
 
     def result(self, state, action):
