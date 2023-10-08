@@ -25,7 +25,7 @@ class EstadoFantasma:
 class MedoTotal(Problem):
     
     def __init__(self, situacaoInicial=mundoStandard):
-        infoDetails = Problem.split('\n', 3)
+        infoDetails = situacaoInicial.split('\n', 3)
         #params
         self.objective = int((infoDetails[0])[2:])
         # self.fear = infoDetails[1]
@@ -35,7 +35,7 @@ class MedoTotal(Problem):
         self.grid = [(line.replace(" ", "")) for line in lines]
         #positions
         self.ghost_pos = self.find_symbol(self.grid,'F')[0]
-        pacman_pos_ini = self.find_symbol(self.grid,'F')[0]
+        pacman_pos_ini = self.find_symbol(self.grid,'@')[0]
         pill_pos_ini = self.find_symbol(self.grid,'*')
         #state
         self.initial = EstadoFantasma(int((infoDetails[1])[2:]),pacman_pos_ini,pill_pos_ini,{pacman_pos_ini:1})
@@ -61,7 +61,7 @@ class MedoTotal(Problem):
         closest_pellet_distance = self.distance_to_closest_pellet(self, state)
         num_pill_pos = len(state.pill_pos)
 
-        if state.fear < self.objective and (num_pill_pos == 0 or closest_pellet_distance < state.fear or closest_pellet_distance + num_pill_pos * self.power < state.fear):
+        if state.fear < self.objective and (num_pill_pos == 0 or closest_pellet_distance > state.fear or closest_pellet_distance + num_pill_pos * self.power < self.objective):
             return []
 
         allowed_actions = [key for key, (x, y) in directions.items() if self.grid[pacman_y + y][pacman_x + x] not in ["=", "F"]]
