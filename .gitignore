@@ -1,1 +1,5 @@
-MedoTotal/MedoTotal.ipynb
+.gitignore
+/MedoTotal/MedoTotal.ipynb
+/MedoTotal/MedoTotal_eng.ipynb
+/MedoTotal/playground.ipynb
+/MedoTotal/__pycache__/
