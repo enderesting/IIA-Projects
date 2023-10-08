@@ -1,4 +1,5 @@
 from searchPlus import *
+import copy
 
 parametros = "T=26\nM=6\nP=10"
 linha1 = "= = = = = = = = = =\n"
@@ -17,8 +18,7 @@ mundoStandard = parametros + "\n" + grelha
 
 class EstadoFantasma:
 
-    def __init__(self, objective, fear, pac_pos, pill_pos, path):
-    # self.fear,self.pacman_pos,self.pill_pos,self.path
+    def __init__(self, objective:int, fear:int, pac_pos:(int,int), pill_pos:[(int,int)], path:{(int,int):int}):
         self.objective, self.fear, self.pacman_pos, self.pill_pos, self.path = objective, fear, pac_pos, pill_pos, path
 
     def __eq__(self, __value: object) -> bool:
@@ -92,8 +92,17 @@ class MedoTotal(Problem):
         distances = [abs(pacman_x-x)+abs(pacman_y-y) for (x, y) in state.pill_pos]
         return min(distances)
 
-    def result(self, state, action):
-        pass
+    def result(self, state : EstadoFantasma, action):
+        # objective, fear, pac_pos, pill_pos, path
+        n_state = copy.deepcopy(state)
+        n_state.objective -=1
+        # apply action to pac_pos
+        # check if it's equal to a pill_pos
+        # if yes,remove this from pill_pos list
+        # top the fear to P
+        # add new pos to path
+        # if else, n_state.fear -= 1
+        return n_state
 
     def path_cost(self, c, state1, action, next_state):
         pass
