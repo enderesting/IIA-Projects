@@ -76,7 +76,7 @@ class MedoTotal(Problem):
     def actions(self, state : EstadoFantasma):
         directions = {"N":(0,-1),"W":(-1,0),"E":(1,0),"S":(0,1)}
         pacman_x, pacman_y = state.pacman_pos[0], state.pacman_pos[1]
-        closest_pellet_distance = self.distance_to_closest_pellet(self, state)
+        closest_pellet_distance = self.distance_to_closest_pellet(state)
         num_pill_pos = len(state.pill_pos)
 
         if state.fear < self.objective and (num_pill_pos == 0 or closest_pellet_distance > state.fear or closest_pellet_distance + num_pill_pos * self.power < self.objective):
