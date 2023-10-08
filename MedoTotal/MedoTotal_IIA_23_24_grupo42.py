@@ -17,14 +17,14 @@ mundoStandard = parametros + "\n" + grelha
 
 class EstadoFantasma:
 
-    def __init__(self, fear, pac_pos, pill_pos, path):
+    def __init__(self, objective, fear, pac_pos, pill_pos, path):
     # self.fear,self.pacman_pos,self.pill_pos,self.path
-        self.fear, self.pacman_pos, self.pill_pos, self.path = fear, pac_pos, pill_pos, path
+        self.objective, self.fear, self.pacman_pos, self.pill_pos, self.path = objective, fear, pac_pos, pill_pos, path
 
     def __eq__(self, __value: object) -> bool:
         if not isinstance(__value, EstadoFantasma):
             return NotImplemented
-        result = (self.fear == __value.fear) and (self.pacman_pos == __value.pacman_pos) 
+        result = (self.objective == __value.objective) and (self.fear == __value.fear) and (self.pacman_pos == __value.pacman_pos) 
         result &= (self.pill_pos == __value.pill_pos) and (self.path == __value.path)
         return result
 
@@ -33,7 +33,7 @@ class MedoTotal(Problem):
     def __init__(self, situacaoInicial=mundoStandard):
         infoDetails = situacaoInicial.split('\n', 3)
         #params
-        self.objective = int((infoDetails[0])[2:])
+        # self.objective = int((infoDetails[0])[2:])
         # self.fear = infoDetails[1]
         self.power = int((infoDetails[2])[2:])
         #grid
@@ -51,7 +51,7 @@ class MedoTotal(Problem):
             self.display_grid = self.replace_symbol(pos,'.')
 
         #state
-        self.initial = EstadoFantasma(int((infoDetails[1])[2:]),pacman_pos_ini,pill_pos_ini,{pacman_pos_ini:1})
+        self.initial = EstadoFantasma(int((infoDetails[0])[2:]),int((infoDetails[1])[2:]),pacman_pos_ini,pill_pos_ini,{pacman_pos_ini:1})
 
 
     def replace_symbol(self,pos,new_symbol):
