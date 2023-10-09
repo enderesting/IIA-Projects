@@ -28,8 +28,9 @@ class EstadoFantasma:
         result &= (self.pill_pos == __value.pill_pos) and (self.path == __value.path)
         return result
 
+dires = {"N":(0,-1),"W":(-1,0),"E":(1,0),"S":(0,1)}
 class MedoTotal(Problem):
-    
+
     def __init__(self, situacaoInicial=mundoStandard):
         infoDetails = situacaoInicial.split('\n', 3)
         #params
@@ -74,15 +75,15 @@ class MedoTotal(Problem):
 
 
     def actions(self, state : EstadoFantasma):
-        directions = {"N":(0,-1),"W":(-1,0),"E":(1,0),"S":(0,1)}
+        # directions = {"N":(0,-1),"W":(-1,0),"E":(1,0),"S":(0,1)}
         pacman_x, pacman_y = state.pacman_pos[0], state.pacman_pos[1]
         closest_pellet_distance = self.distance_to_closest_pellet(state)
         num_pill_pos = len(state.pill_pos)
 
-        if state.fear < self.objective and (num_pill_pos == 0 or closest_pellet_distance > state.fear or closest_pellet_distance + num_pill_pos * self.power < self.objective):
+        if state.fear < state.objective and (num_pill_pos == 0 or closest_pellet_distance > state.fear or closest_pellet_distance + num_pill_pos * self.power < state.objective):
             return []
 
-        allowed_actions = [key for key, (x, y) in directions.items() if self.grid[pacman_y + y][pacman_x + x] not in ["=", "F"]]
+        allowed_actions = [key for key, (x, y) in dires.items() if self.grid[pacman_y + y][pacman_x + x] not in ["=", "F"]]
         return allowed_actions
     
     def distance_to_closest_pellet(self, state : EstadoFantasma):
@@ -94,15 +95,29 @@ class MedoTotal(Problem):
 
     def result(self, state : EstadoFantasma, action):
         # objective, fear, pac_pos, pill_pos, path
-        n_state = copy.deepcopy(state)
-        n_state.objective -=1
+        res = copy.deepcopy(state)
+        res.objective -=1
+        res.fear -= 1
         # apply action to pac_pos
+        dir = dires[action]
+        res.pacman_pos = (res.pacman_pos[0]+dir[0],res.pacman_pos[1]+dir[1])
         # check if it's equal to a pill_pos
-        # if yes,remove this from pill_pos list
-        # top the fear to P
+        for each_pill in res.pill_pos:
+            if each_pill == res.pacman_pos:
+                # if yes,remove this from pill_pos list
+                res.pill_pos.remove(each_pill)
+                # top the fear to P
+                res.fear = self.power
+                break
         # add new pos to path
-        # if else, n_state.fear -= 1
-        return n_state
+        if res.pacman_pos in res.path.values():
+            res.path[res.pacman_pos] += 1
+        else:
+            res.path[res.pacman_pos] = 1
+        return res
+    
+    def goal_test(self, state:EstadoFantasma):
+        return state.objective == 0 
 
     def path_cost(self, c, state1, action, next_state):
         pass
