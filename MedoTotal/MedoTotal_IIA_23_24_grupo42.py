@@ -18,7 +18,7 @@ mundoStandard = parametros + "\n" + grelha
 
 class EstadoFantasma:
 
-    def __init__(self, objective:int, fear:int, pac_pos:(int,int), pill_pos:[(int,int)], path:{(int,int):int}):
+    def __init__(self, objective:int, fear:int, pac_pos:tuple, pill_pos:list, path:dict):
         self.objective, self.fear, self.pacman_pos, self.pill_pos, self.path = objective, fear, pac_pos, pill_pos, path
 
     def __eq__(self, __value: object) -> bool:
@@ -110,7 +110,7 @@ class MedoTotal(Problem):
                 res.fear = self.power
                 break
         # add new pos to path
-        if res.pacman_pos in res.path.values():
+        if res.pacman_pos in res.path.keys():
             res.path[res.pacman_pos] += 1
         else:
             res.path[res.pacman_pos] = 1
@@ -120,7 +120,19 @@ class MedoTotal(Problem):
         return state.objective == 0 
 
     def path_cost(self, c, state1, action, next_state):
-        pass
+        custo = 0
+        for cost in next_state.path.values():
+            custo += self.node_cost_calculation(cost)
+        return custo-1
+
+    def node_cost_calculation(self, times_visited):
+        cost = 0
+        if times_visited == 1:
+            cost = 1
+        else:
+            cost = self.node_cost_calculation(times_visited-1) + times_visited
+        return cost
+
 
     def executa(p, estado, accoes, verbose=False):
         """Executa uma sequência de acções a partir do estado devolvendo o triplo formado pelo estado, 
