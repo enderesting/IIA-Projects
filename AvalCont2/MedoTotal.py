@@ -2,6 +2,7 @@
 from collections import namedtuple
 from searchPlus import *
 import timeit    # Para tirar
+import queue
 
 
 EstadoMedo = namedtuple('EstadoMedo', 'pacman, pastilhas, tempo, medo, visitadas')
@@ -90,6 +91,31 @@ class MedoTotal(Problem):
 
     directions = {"N":(0, -1), "W":(-1, 0), "E":(1,  0),"S":(0, +1)}  # ortogonais
     
+    # breadth search for the closest pill
+    def find_closest_pill(self,state):
+        frontier = queue.Queue()
+        frontier.put(state.pacman)
+        came_from = {}
+        came_from[state.pacman] = None
+
+        while not frontier.empty():
+            current_node = frontier.get()
+
+            # if a pill is found!
+            if current_node in state.pastilhas:
+                count = 0
+                while came_from[current_node] is not None :
+                    current_node = came_from[current_node] # if we're not back at the start, go back a step
+                    count+=1
+                return count # figure out the path length and return
+            
+            #for all neighbors of the current
+            for each_neighbor in list(map(lambda d: (5+d[0], 10+d[1]), directions.values())):
+                if each_neighbor not in came_from: #every node that was visited gets added to the dict
+                    came_from[each_neighbor] = current_node # pointing where each neighbor came from to the current node
+                    frontier.add(each_neighbor)
+        return 0
+
                   
     def result(self, state, action): 
         "Tanto as acções como os estados são representados por pares (x,y)."
@@ -119,7 +145,8 @@ class MedoTotal(Problem):
             return False
         if state.pastilhas == set(): # se não há mais pastilhas e eram necessárias
             return True
-        minDist = min(list(map(lambda x: manhatan(state.pacman,x),state.pastilhas)))
+        minDist = find_closest_pill(state)
+        # minDist = min(list(map(lambda x: actual_dist(state.pacman,x),state.pastilhas)))
         if minDist > state.medo: # se não há tempo (manhatan) para chegar à próxima super-pastilha
             return True
         if (state.medo + self.poder * len(state.pastilhas)) < state.tempo:
