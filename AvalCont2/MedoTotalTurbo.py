@@ -2,6 +2,7 @@
 from collections import namedtuple
 from searchPlus import *
 import timeit    # Para tirar
+import queue
 
 
 EstadoMedo = namedtuple('EstadoMedo', 'pacman, pastilhas, tempo, medo, visitadas')
@@ -45,7 +46,7 @@ def manhatan(p,q):
 
 # A subclasse de Problem: MedoTotal
 #
-class MedoTotal(Problem):
+class MedoTotalTurbo(Problem):
     """Encontrar um caminho numa grelha 2D com obstáculos. Os obstáculos são células (x, y)."""
 
     def conv_txt_estado(self,txt):
@@ -90,6 +91,33 @@ class MedoTotal(Problem):
 
     directions = {"N":(0, -1), "W":(-1, 0), "E":(1,  0),"S":(0, +1)}  # ortogonais
     
+    # breadth search for the closest pill
+    def find_closest_pill(self,state):
+        frontier = queue.Queue()
+        frontier.put(state.pacman)
+        came_from = {}
+        came_from[state.pacman] = None
+
+        while not frontier.empty():
+            current_node = frontier.get()
+
+            # if a pill is found!
+            if current_node in state.pastilhas:
+                count = 0
+                while came_from[current_node] is not None :
+                    current_node = came_from[current_node] # if we're not back at the start, go back a step
+                    count+=1
+                return count # figure out the path length and return
+            
+            #for all neighbors of the current
+            for each_neighbor in list(map(lambda d: (current_node[0]+d[0], current_node[1]+d[1]), self.directions.values())):
+                    if each_neighbor not in (self.obstacles | {self.fantasma}) and\
+                        each_neighbor not in came_from: #every node that was visited gets added to the dict 
+                        #NoTE TO SELF!!!: check obstacle before proceeding
+                        came_from[each_neighbor] = current_node # pointing where each neighbor came from to the current node
+                        frontier.put(each_neighbor)
+        return 0
+
                   
     def result(self, state, action): 
         "Tanto as acções como os estados são representados por pares (x,y)."
@@ -119,7 +147,8 @@ class MedoTotal(Problem):
             return False
         if state.pastilhas == set(): # se não há mais pastilhas e eram necessárias
             return True
-        minDist = min(list(map(lambda x: manhatan(state.pacman,x),state.pastilhas)))
+        minDist = self.find_closest_pill(state)
+        # minDist = min(list(map(lambda x: actual_dist(state.pacman,x),state.pastilhas)))
         if minDist > state.medo: # se não há tempo (manhatan) para chegar à próxima super-pastilha
             return True
         if (state.medo + self.poder * len(state.pastilhas)) < state.tempo:
@@ -131,10 +160,11 @@ class MedoTotal(Problem):
         """Podes mover-te para uma célula em qualquer das direcções para uma casa 
            que não seja obstáculo nem fantasma."""
         x, y = state.pacman
-        return [act for act in self.directions.keys() 
+        if self.falha_antecipada(state): return []
+        else:
+            return [act for act in self.directions.keys() 
                 if (x+self.directions[act][0],y+self.directions[act][1]) not in (self.obstacles | {self.fantasma}) and 
                 not self.falha_antecipada(self.result(state,act))]
-
     
     def path_cost(self,c,state,action,new):
         return c + new.visitadas[new.pacman]

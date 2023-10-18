@@ -1,5 +1,10 @@
 .gitignore
+.vscode/
 /MedoTotal/MedoTotal.ipynb
 /MedoTotal/MedoTotal_eng.ipynb
 /MedoTotal/playground.ipynb
 /MedoTotal/__pycache__/
+AvalCont2/Pergunta1AvalContinua2.ipynb
+AvalCont2/Pergunta2AvalContinua2.ipynb
+AvalCont2/Pergunta3AvalContinua2.ipynb
+AvalCont2/__pycache__/
