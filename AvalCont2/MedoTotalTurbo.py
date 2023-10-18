@@ -87,12 +87,19 @@ class MedoTotalTurbo(Problem):
         self.poder = diccio['P']
         self.obstacles=diccio['obstaculos']
         self.dim=diccio['dim']
+        self.pellet_map={}
 
 
     directions = {"N":(0, -1), "W":(-1, 0), "E":(1,  0),"S":(0, +1)}  # ortogonais
     
     # breadth search for the closest pill
     def find_closest_pill(self,state):
+        # if npellet is the same as the last u checked
+        # check a dictionary {(x,y):npellet,dist_to_pellet}
+        if(state.pacman in self.pellet_map.keys() and\
+           len(state.pastilhas) == self.pellet_map[state.pacman][0]):
+            return self.pellet_map[state.pacman][1]
+
         frontier = queue.Queue()
         frontier.put(state.pacman)
         came_from = {}
@@ -107,6 +114,7 @@ class MedoTotalTurbo(Problem):
                 while came_from[current_node] is not None :
                     current_node = came_from[current_node] # if we're not back at the start, go back a step
                     count+=1
+                self.pellet_map[state.pacman] = (len(state.pastilhas),count)
                 return count # figure out the path length and return
             
             #for all neighbors of the current
