@@ -84,3 +84,41 @@ class MedoTotalTurbo(MedoTotal):
             # se o poder de todas as pastilhas mais o medo são insuficientes.
             return True
         return False
+
+def depth_first_tree_search_all_count(problem,optimal=False,verbose=False):
+
+    #if optimal, skip outta loop if cost is higher
+    """
+    class Node(
+    state: Any,
+    parent: Any | None = None,
+    action: Any | None = None,
+    path_cost: int = 0
+    )
+
+    resultado,max_mem,visitados,finais = depth_first_tree_search_all_count(gx)
+    - result state
+    - max_mem?
+    - number of visited nodes
+    - number of branches that reached goal state
+    """
+    frontier=Stack()
+    visited=0
+    finais=0
+    best=None # define somewhere else
+    max_mem=0
+    # based on tree_search(problem, frontier) from searchPlus.py
+    frontier.append(Node(problem.initial))
+    while frontier:
+        node = frontier.pop()
+        visited+=1
+        if verbose:
+            problem.display(node.state)
+        if problem.goal_test(node.state):
+            finais+=1 # return node
+            if best is None or best.path_cost > node.path_cost:
+               best = node
+        frontier.extend(node.expand(problem))
+        if frontier.__len__() >max_mem:
+            max_mem = frontier.__len__()
+    return (best,max_mem,visited,finais)
