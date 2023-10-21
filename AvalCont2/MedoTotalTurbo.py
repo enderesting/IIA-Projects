@@ -103,7 +103,7 @@ def depth_first_tree_search_all_count(problem,optimal=False,verbose=False):
     - number of branches that reached goal state
     """
     frontier=Stack()
-    visited=1
+    visited=0
     finais=0
     best=None # define somewhere else
     max_mem=0
