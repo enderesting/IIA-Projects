@@ -103,7 +103,7 @@ def depth_first_tree_search_all_count(problem,optimal=False,verbose=False):
     - number of branches that reached goal state
     """
     frontier=Stack()
-    visited=0
+    visited=1
     finais=0
     best=None # define somewhere else
     max_mem=0
@@ -112,23 +112,21 @@ def depth_first_tree_search_all_count(problem,optimal=False,verbose=False):
     frontier.append(Node(problem.initial))
     while frontier:
         node = frontier.pop()
-        if optimal and best and node.path_cost >= best.path_cost:
-            continue
-        visited+=1
-        if problem.goal_test(node.state):
-            finais+=1 # return node
-            if best is None or best.path_cost > node.path_cost:
-               best = node
-        else:
-            expansion = reversed(node.expand(problem))
-            if optimal and best:
-                expansion = [each_node for each_node in expansion if each_node.path_cost < best.path_cost]
-            frontier.extend(expansion)
-            if frontier.__len__() > max_mem:
-                max_mem = frontier.__len__()
+        visited += 1
+        expansion = []
+        for new_node in reversed(node.expand(problem)):
+            if problem.goal_test(new_node.state):
+                visited += 1
+                finais += 1  # return node
+                if best is None or best.path_cost > new_node.path_cost:
+                    best = new_node
+            else:
+                if optimal and best and new_node.path_cost >= best.path_cost:
+                    continue
+                else:
+                    expansion.append(new_node)
+        frontier.extend(expansion)
+        if frontier.__len__() > max_mem:
+            max_mem = frontier.__len__()
 
-        if verbose:
-            print("---------------------\n\n" + problem.display(node.state))
-
-            print("Custo: " + str(node.path_cost))
     return (best,max_mem,visited,finais)
