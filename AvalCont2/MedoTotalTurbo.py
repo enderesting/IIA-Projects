@@ -113,20 +113,29 @@ def depth_first_tree_search_all_count(problem,optimal=False,verbose=False):
     while frontier:
         node = frontier.pop()
         visited += 1
+        if verbose: pretty_print(problem,node)
         expansion = []
-        for new_node in reversed(node.expand(problem)):
-            if problem.goal_test(new_node.state):
-                visited += 1
-                finais += 1  # return node
-                if best is None or best.path_cost > new_node.path_cost:
-                    best = new_node
-            else:
-                if optimal and best and new_node.path_cost >= best.path_cost:
-                    continue
-                else:
+        for new_node in node.expand(problem):
+            if not optimal or (best is None or new_node.path_cost < best.path_cost):
+                is_goal, is_best = problem.goal_test(new_node.state), (best is None or new_node.path_cost < best.path_cost)
+                if is_goal:
+                    finais += 1
+                    if best is None or is_best:
+                        best = new_node
+                    visited += 1
+                    if verbose: pretty_print(problem,new_node,is_goal,is_best)
+                else: # if its not goal,
                     expansion.append(new_node)
-        frontier.extend(expansion)
+        frontier.extend(reversed(expansion))
         if frontier.__len__() > max_mem:
             max_mem = frontier.__len__()
-
     return (best,max_mem,visited,finais)
+
+def pretty_print(problem,node,is_goal=False,is_best=False):
+    print("---------------------\n\n" + problem.display(node.state))
+    if is_goal:
+        print("GGGGooooooallllll --------- com o custo: " + str(node.path_cost))
+        if is_best:
+            print("Di best goal até agora")
+    else:
+        print("Custo: " + str(node.path_cost))
