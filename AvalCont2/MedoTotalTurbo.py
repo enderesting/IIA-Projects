@@ -84,3 +84,58 @@ class MedoTotalTurbo(MedoTotal):
             # se o poder de todas as pastilhas mais o medo são insuficientes.
             return True
         return False
+
+def depth_first_tree_search_all_count(problem,optimal=False,verbose=False):
+
+    #if optimal, skip outta loop if cost is higher
+    """
+    class Node(
+    state: Any,
+    parent: Any | None = None,
+    action: Any | None = None,
+    path_cost: int = 0
+    )
+
+    resultado,max_mem,visitados,finais = depth_first_tree_search_all_count(gx)
+    - result state
+    - max_mem?
+    - number of visited nodes
+    - number of branches that reached goal state
+    """
+    frontier=Stack()
+    visited=0
+    finais=0
+    best=None # define somewhere else
+    max_mem=0
+    c=0
+    # based on tree_search(problem, frontier) from searchPlus.py
+    frontier.append(Node(problem.initial))
+    while frontier:
+        node = frontier.pop()
+        visited += 1
+        if verbose: pretty_print(problem,node)
+        expansion = []
+        for new_node in node.expand(problem):
+            if not optimal or (best is None or new_node.path_cost < best.path_cost):
+                is_goal, is_best = problem.goal_test(new_node.state), (best is None or new_node.path_cost < best.path_cost)
+                if is_goal:
+                    finais += 1
+                    if best is None or is_best:
+                        best = new_node
+                    visited += 1
+                    if verbose: pretty_print(problem,new_node,is_goal,is_best)
+                else: # if its not goal,
+                    expansion.append(new_node)
+        frontier.extend(reversed(expansion))
+        if frontier.__len__() > max_mem:
+            max_mem = frontier.__len__()
+    return (best,max_mem,visited,finais)
+
+def pretty_print(problem,node,is_goal=False,is_best=False):
+    print("---------------------\n\n" + problem.display(node.state))
+    if is_goal:
+        print("GGGGooooooallllll --------- com o custo: " + str(node.path_cost))
+        if is_best:
+            print("Di best goal até agora")
+    else:
+        print("Custo: " + str(node.path_cost))
