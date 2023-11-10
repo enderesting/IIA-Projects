@@ -105,4 +105,4 @@ jogo=Kalah(10)
 # jogo.result()
 
 # _,_,res=joga11(jogo,toe1,pebs,True)
-jogaNpares(jogo,30,toe1,pebs)
+jogaNpares(jogo,30,toe1,pebs,True)
