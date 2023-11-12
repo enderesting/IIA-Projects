@@ -943,6 +943,48 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
 
     return argmax(population, key=fitness_fn)
 
+# population: list of lists of randomly generated weights [[1,1,1,1], [0.5,0.7,0.1,0.9]...]
+#             does not have to add up to 1
+# fitness_fn: the function that takes weights and receives a result having played some npaired games
+# gene_pool: different ways to choose how a gene can mutate
+# f_thres: the final gene has to beat this score to end the algorithm. if none, ignore
+# ngen: how many generations the algorithm will run for
+# pmut: how likely it is to mutate
+def genetic_algorithm_custom(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):  # noqa
+    """[Figure 4.8]"""
+    for i in range(ngen):
+        new_population=[]
+        fit_names = [(i + x) for x in range(len(population))]
+        fitnesses = map(fitness_fn, fit_names, population)  
+        pop_dict = dict(map(lambda k, ws,fits: (k, (ws,fits)), fit_names, population, fitnesses))
+        
+        # ignore this, im testing sth
+        # if (old_dict):
+        #     fittest_last_gen = max(old_dict.values(), key=lambda x: x[1])
+        #     fittest_current_gen = max(pop_dict.values(), key=lambda x: x[1])
+        #     worst_current_gen = min(pop_dict.values(), key=lambda x: x[1])
+        #     if (fittest_last_gen[1]>fittest_current_gen[1]):
+        #         pop_dict.pop()
+
+        random_selection = selection_chances_custom(pop_dict)
+        for j in range(len(population)):
+            x = random_selection()
+            y = random_selection()
+            child = reproduce(x, y)
+            if random.uniform(0, 1) < pmut:
+                child = mutate(child, gene_pool)
+            new_population.append(child)
+        # try doing elitism? 
+        # old_dict = pop_dict   
+        population = new_population
+
+        if f_thres:
+            # fit_values = [x[1] for x in pop_dict.values()]
+            fittest_individual = max(pop_dict.values(), key=lambda x: x[1])
+            if fitness_fn(fittest_individual) >= f_thres:
+                return fittest_individual
+
+    return max(pop_dict.values(), key=lambda x: x[1])
 
 def init_population(pop_number, gene_pool, state_length):
     """Initializes population for genetic algorithm
@@ -962,6 +1004,13 @@ def selection_chances(fitness_fn, population):
     fitnesses = map(fitness_fn, population)
     return weighted_sampler(population, fitnesses)
 
+
+def selection_chances_custom(population_dict):
+    # fit_names = [(generation + x) for x in range(len(population))]
+    # fitnesses = map(fitness_fn, fit_names, population)
+    pop_weights = [x[0] for x in population_dict.values()]
+    fit_values = [x[1] for x in population_dict.values()]
+    return weighted_sampler(pop_weights,fit_values)
 
 def reproduce(x, y):
     n = len(x)
@@ -1638,6 +1687,6 @@ class ProblemaJoaninhas(Problem) :
         àquela que se pretende medir
         """
         return len(estado.casas) == 1
-
+    
 
 

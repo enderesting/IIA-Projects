@@ -82,8 +82,34 @@ def congregate_seeds(state:KalahState,player):
                 result = pit_weight
     return result
 
-# the more open space they have towards the leftside
+def capture_available(state:KalahState,player):
+    board = state.state
+    if player == state.SOUTH:
+        empties = [i for i in range(6) if board[i]==0]
+        move_final_index = [i+board[i] if i+board[i]<13 else 13%i+board[i] for i in range(6)]
+        possible_captures = [value for value in empties if value in move_final_index]
 
+        if len(possible_captures) == 0:
+            return 0
+        else:
+            max_capture = 0
+            for i in possible_captures:
+                if 1+board[i+7] > max_capture:
+                    max_capture = 1+board[i+7]
+            return max_capture
+    else:
+        empties = [i for i in range(7,13) if board[i]==0]
+        move_final_index = [i+board[i] if i+board[i]-7<13 else 13%i+board[i] for i in range(7,13)]
+        possible_captures = [value for value in empties if value in move_final_index]
+
+        if len(possible_captures) == 0:
+            return 0
+        else:
+            max_capture = 0
+            for i in possible_captures:
+                if 1+board[i-7] > max_capture:
+                    max_capture = 1+board[i-7]
+            return max_capture
 
 # if there's an empty spot in the opposition and we can cover,
 def capture_defense(state:KalahState,player):
