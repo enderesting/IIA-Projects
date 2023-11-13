@@ -940,6 +940,7 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
             fittest_individual = argmax(population, key=fitness_fn)
             if fitness_fn(fittest_individual) >= f_thres:
                 return fittest_individual
+        print("generation",i,"is done!")
 
     return argmax(population, key=fitness_fn)
 

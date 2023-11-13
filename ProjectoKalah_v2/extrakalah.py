@@ -54,68 +54,94 @@ def side_total(state:KalahState,player):
 
 # satsifies H5: Clear the rightmost pit (i.e., that with number 1).
 def chance_to_clear_right_most(state:KalahState,player):
-    score_pit = state.SOUTH_SCORE_PIT if state.to_move == state.SOUTH else state.NORTH_SCORE_PIT
-    if state.state[score_pit-1] == 0:
-        return 1
-    # for i in range(score_pit - state.PLAY_PITS, score_pit):
-    #     pass
-    return 0
+    north_right_empty = 1 if state.state[12] == 0 else 0
+    south_right_empty = 1 if state.state[5] == 0 else 0
+    return south_right_empty - north_right_empty if player == state.SOUTH else north_right_empty - south_right_empty
 
 # satsifies H1: Collect as many seeds in one pit as possible
 # encourages having more seeds on the pits closer to the left hand side
 def congregate_seeds(state:KalahState,player):
-    result = 0
     weights = {0:1,
                1:0.8,
                2:0.6,
                3:0.4,
                4:0.2}
-    if player == state.SOUTH:
-        for i in range(5):
-            pit_weight = state.state[i]*weights[i]
-            if  pit_weight > result:
-                result = pit_weight
-    else:
-        for i in range(7,12):
-            pit_weight = state.state[i]*weights[i-7]
-            if  pit_weight > result:
-                result = pit_weight
-    return result
+    
+    south_result = 0
+    for i in range(5):
+        pit_weight = state.state[i]*weights[i]
+        if  pit_weight > south_result:
+            south_result = pit_weight
+    north_result = 0
+    for i in range(7,12):
+        pit_weight = state.state[i]*weights[i-7]
+        if  pit_weight > north_result:
+            north_result = pit_weight
+    return south_result - north_result if player == state.SOUTH else north_result - south_result
 
-def capture_available(state:KalahState,player):
-    board = state.state
-    if player == state.SOUTH:
-        empties = [i for i in range(6) if board[i]==0]
-        move_final_index = [i+board[i] if i+board[i]<13 else 13%i+board[i] for i in range(6)]
-        possible_captures = [value for value in empties if value in move_final_index]
+# def capture_available(state:KalahState,player):
+#     board = state.state
+#     if player == state.SOUTH:
+#         empties = [i for i in range(6) if board[i]==0]
+#         move_final_index = [i+board[i] if i+board[i]<13 else 13%i+board[i] for i in range(6)]
+#         possible_captures = [value for value in empties if value in move_final_index]
 
-        if len(possible_captures) == 0:
-            return 0
-        else:
-            max_capture = 0
-            for i in possible_captures:
-                if 1+board[i+7] > max_capture:
-                    max_capture = 1+board[i+7]
-            return max_capture
-    else:
-        empties = [i for i in range(7,13) if board[i]==0]
-        move_final_index = [i+board[i] if i+board[i]-7<13 else 13%i+board[i] for i in range(7,13)]
-        possible_captures = [value for value in empties if value in move_final_index]
+#         if len(possible_captures) == 0:
+#             return 0
+#         else:
+#             max_capture = 0
+#             for i in possible_captures:
+#                 if 1+board[i+7] > max_capture:
+#                     max_capture = 1+board[i+7]
+#             return max_capture
+#     else:
+#         empties = [i for i in range(7,13) if board[i]==0]
+#         move_final_index = [i+board[i] if i+board[i]-7<13 else 13%i+board[i] for i in range(7,13)]
+#         possible_captures = [value for value in empties if value in move_final_index]
 
-        if len(possible_captures) == 0:
-            return 0
-        else:
-            max_capture = 0
-            for i in possible_captures:
-                if 1+board[i-7] > max_capture:
-                    max_capture = 1+board[i-7]
-            return max_capture
+#         if len(possible_captures) == 0:
+#             return 0
+#         else:
+#             max_capture = 0
+#             for i in possible_captures:
+#                 if 1+board[i-7] > max_capture:
+#                     max_capture = 1+board[i-7]
+#             return max_capture
 
-# if there's an empty spot in the opposition and we can cover,
+# detect possible captures from oppositions
+# heuristics are taken away for every weak link
 def capture_defense(state:KalahState,player):
     # for every capture blocked, the value is like, the number of seed they dont win
-    pass
+    board = state.state
+    
+    south_max_capture = 0
+    south_empties = [i for i in range(6) if board[i]==0]
+    south_move_final_index = [i+board[i] if i+board[i]<13 else (i+board[i])%13 for i in range(6)]
+    south_possible_captures = [value for value in south_empties if value in south_move_final_index]
 
+    if len(south_possible_captures) != 0:
+        for i in south_possible_captures:
+            if 1+board[i+7] > south_max_capture:
+                south_max_capture = 1+board[i+7] #figure out the best capture you could do
+    
+    north_max_capture = 0
+    north_empties = [i for i in range(7,13) if board[i]==0]
+    north_move_final_index = [i+board[i] if i+board[i]-7<13 else (i+board[i])%13 for i in range(7,13)]
+    north_possible_captures = [value for value in north_empties if value in north_move_final_index]
+
+    if len(north_possible_captures) != 0:
+        for i in north_possible_captures:
+            if 1+board[i-7] > north_max_capture:
+                north_max_capture = 1+board[i-7]
+
+    if player == state.SOUTH:
+        return pit_total(state,player) - north_max_capture*(-1) # or north_max_capture?
+    else:
+        return pit_total(state,player) - south_max_capture*(-1)
+
+    # return south_max_capture - north_max_capture if player == state.SOUTH else north_max_capture - south_max_capture
+
+    # pass
 
 # return a 32 bit hash, 5 bit
 def hash(state:KalahState):
