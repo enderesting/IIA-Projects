@@ -79,34 +79,30 @@ def congregate_seeds(state:KalahState,player):
             north_result = pit_weight
     return south_result - north_result if player == state.SOUTH else north_result - south_result
 
-# def capture_available(state:KalahState,player):
-#     board = state.state
-#     if player == state.SOUTH:
-#         empties = [i for i in range(6) if board[i]==0]
-#         move_final_index = [i+board[i] if i+board[i]<13 else 13%i+board[i] for i in range(6)]
-#         possible_captures = [value for value in empties if value in move_final_index]
+def capture_available(state:KalahState,player):
+    board = state.state
 
-#         if len(possible_captures) == 0:
-#             return 0
-#         else:
-#             max_capture = 0
-#             for i in possible_captures:
-#                 if 1+board[i+7] > max_capture:
-#                     max_capture = 1+board[i+7]
-#             return max_capture
-#     else:
-#         empties = [i for i in range(7,13) if board[i]==0]
-#         move_final_index = [i+board[i] if i+board[i]-7<13 else 13%i+board[i] for i in range(7,13)]
-#         possible_captures = [value for value in empties if value in move_final_index]
+    south_max_capture = 0
+    south_empties = [i for i in range(6) if board[i]==0]
+    south_move_final_index = [(i+board[i])%14 if i+board[i]<13 else (i+board[i])%13 for i in range(6) if board[i] != 0 and board[i]<=13]
+    south_possible_captures = [value for value in south_empties if value in south_move_final_index]
 
-#         if len(possible_captures) == 0:
-#             return 0
-#         else:
-#             max_capture = 0
-#             for i in possible_captures:
-#                 if 1+board[i-7] > max_capture:
-#                     max_capture = 1+board[i-7]
-#             return max_capture
+    if len(south_possible_captures) != 0:
+        for i in south_possible_captures:
+            if 1+board[i+7] > south_max_capture:
+                south_max_capture = 1+board[i+7]
+    
+    north_max_capture = 0
+    north_empties = [i for i in range(7,13) if board[i]==0]
+    north_move_final_index = [(i+board[i])%14 if i+board[i]-7<13 else ((i+board[i])%14)+1 for i in range(7,13) if board[i] != 0 and board[i]<=13]
+    north_possible_captures = [value for value in north_empties if value in north_move_final_index]
+
+    if len(north_possible_captures) != 0:
+        for i in north_possible_captures:
+            if 1+board[i-7] > north_max_capture:
+                north_max_capture = 1+board[i-7]
+
+    return south_max_capture - north_max_capture if player == state.SOUTH else north_max_capture - south_max_capture
 
 # detect possible captures from oppositions
 # heuristics are taken away for every weak link
@@ -116,7 +112,7 @@ def capture_defense(state:KalahState,player):
     
     south_max_capture = 0
     south_empties = [i for i in range(6) if board[i]==0]
-    south_move_final_index = [i+board[i] if i+board[i]<13 else (i+board[i])%13 for i in range(6)]
+    south_move_final_index = [(i+board[i])%14 if i+board[i]<13 else (i+board[i])%13 for i in range(6) if board[i] != 0 and board[i]<=13]
     south_possible_captures = [value for value in south_empties if value in south_move_final_index]
 
     if len(south_possible_captures) != 0:
@@ -126,7 +122,7 @@ def capture_defense(state:KalahState,player):
     
     north_max_capture = 0
     north_empties = [i for i in range(7,13) if board[i]==0]
-    north_move_final_index = [i+board[i] if i+board[i]-7<13 else (i+board[i])%13 for i in range(7,13)]
+    north_move_final_index = [(i+board[i])%14 if i+board[i]-7<13 else ((i+board[i])%14)+1 for i in range(7,13) if board[i] != 0 and board[i]<=13]
     north_possible_captures = [value for value in north_empties if value in north_move_final_index]
 
     if len(north_possible_captures) != 0:

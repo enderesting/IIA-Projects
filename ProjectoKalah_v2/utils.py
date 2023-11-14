@@ -279,7 +279,7 @@ def step(x):
 
 
 def gaussian(mean, st_dev, x):
-    """Given the mean and standard deviation of a distribution, it returns the probability of x."""
+    """Given the mean and  deviation of a distribution, it returns the probability of x."""
     return 1/(math.sqrt(2*math.pi)*st_dev)*math.e**(-0.5*(float(x-mean)/st_dev)**2)
 
 

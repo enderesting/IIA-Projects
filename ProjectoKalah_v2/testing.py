@@ -1,6 +1,9 @@
 # from kalah import *
 from pebblereaper import *
+from tqdm import tqdm
 
+for i in tqdm(range(10000)):
+    pass
 
 class Jogador():
     def __init__(self, nome, fun):

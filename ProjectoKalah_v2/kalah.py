@@ -24,9 +24,9 @@ class KalahState():
     s is the second player's (NORTH's) score pit.
 
     The numbers of pieces in each pit are stored in an array as follows:
-    state[0] ... state[6] store the number of pieces in 6, 5, 4, 3, 2, 1, and s.
+    state[0] ... state[6] store the number of pieces in 6, 5, 4, 3, 2, 1, and s. south
                                                      _  _  _  _  _  _      _
-    state[7] ... state[13] store the number of pieces in 6, 5, 4, 3, 2, 1, and s.
+    state[7] ... state[13] store the number of pieces in 6, 5, 4, 3, 2, 1, and s. north
 
     Each player's goal is to end the game with more pieces in one's own
                                                              _

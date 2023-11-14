@@ -15,7 +15,8 @@ import math
 import random
 import sys
 import bisect
-from statistics import stdev
+from tqdm.notebook import tqdm
+import dill
 
 infinity = float('inf')
 
@@ -945,12 +946,6 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
 
     return argmax(population, key=fitness_fn)
 
-def assign_to_index_map(weight_map,list_of_weights):
-    n_weights = len(weight_map)
-    for weights in list_of_weights:
-        for n in range(n_weights):
-            weight_map[n].append(weights[n])
-
 # population: list of lists of randomly generated weights [[1,1,1,1], [0.5,0.7,0.1,0.9]...]
 #             does not have to add up to 1
 # fitness_fn: the function that takes weights and receives a result having played some npaired games
@@ -958,33 +953,52 @@ def assign_to_index_map(weight_map,list_of_weights):
 # f_thres: the final gene has to beat this score to end the algorithm. if none, ignore
 # ngen: how many generations the algorithm will run for
 # pmut: how likely it is to mutate
+
+import multiprocessing
+
+# jank pool id logic
+def mp_pool_init(queue):
+    global idx
+    idx = queue.get()
+
 def genetic_algorithm_custom(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):  # noqa
     """[Figure 4.8]"""
-    for i in range(ngen):
-        new_population=[]
-        fit_names = [(i + x) for x in range(len(population))]
-        fitnesses = map(fitness_fn, fit_names, population)  
-        pop_dict = dict(map(lambda k, ws,fits: (k, (ws,fits)), fit_names, population, fitnesses))
+    POP_COUNT = len(population)
+    eval_population = zip(range(POP_COUNT), population) # type: tuple(name:int, weights:list[float])
+    keep_population = [] # type: tuple(name:int, weights:list[float], fitness:float)
+    #all_known_population_fitness = {} # type: dict(key(weights): list[float], value(fitness): float)
+    #def fitness_fn_with_caching(i): # takes in tuple (name, weights), returns tuple (name, weights, fitness)
+    #    name, weights = i
+    #    if weights in all_known_population_fitness:
+    #        return name, weights, all_known_population_fitness[weights]
+    #    return name, weights, fitness_fn(i)
+    for i in tqdm(range(ngen), desc="overall gen", leave=False):
+        worker_ids = multiprocessing.Queue()
+        for id in range(min(POP_COUNT, 12)):
+            worker_ids.put(id+1)
+        with multiprocessing.Pool(processes=min(POP_COUNT, 12), initializer=mp_pool_init, initargs=(worker_ids,)) as pool:
+            evaluated_population = list(tqdm(pool.imap_unordered(fitness_fn, eval_population), desc="eval pop", total=POP_COUNT, leave=False))
+        # update cachemap
+        #for name, weights, fitness in evaluated_population:
+        #    if weights not in all_known_population_fitness:
+        #        all_known_population_fitness[weights] = fitness
+        # get the x best populations
+        new_keep_population = evaluated_population + keep_population
+        new_keep_population.sort(key=lambda x:x[2], reverse=True)
+        keep_population = new_keep_population[:POP_COUNT]
+        print("Best population at generation", i, keep_population[0])
+        with open("checkpoint-%d"%i, "w") as f:
+            f.write(str(keep_population))
+        eval_population = []
 
-        # ignore this, im testing sth
-        # if (old_dict):
-        #     fittest_last_gen = max(old_dict.values(), key=lambda x: x[1])
-        #     fittest_current_gen = max(pop_dict.values(), key=lambda x: x[1])
-        #     worst_current_gen = min(pop_dict.values(), key=lambda x: x[1])
-        #     if (fittest_last_gen[1]>fittest_current_gen[1]):
-        #         pop_dict.pop()
-    
-        random_selection = selection_chances_custom(pop_dict)
-        for j in range(len(population)):
+        random_selection = selection_chances_custom(keep_population)
+        for j in range(POP_COUNT):
             x = random_selection()
             y = random_selection()
             child = reproduce(x, y)
             if random.uniform(0, 1) < pmut:
-                child = mutate_custom(child)
-            new_population.append(child)
-        # try doing elitism? 
-        # old_dict = pop_dict   
-        population = new_population
+                child = mutate(child, gene_pool)
+            eval_population.append((i*POP_COUNT+j, child))
 
         if f_thres:
             # fit_values = [x[1] for x in pop_dict.values()]
@@ -992,7 +1006,7 @@ def genetic_algorithm_custom(population, fitness_fn, gene_pool=[0, 1], f_thres=N
             if fitness_fn(fittest_individual) >= f_thres:
                 return fittest_individual
 
-    return max(pop_dict.values(), key=lambda x: x[1])
+    return keep_population[0]
 
 def init_population(pop_number, gene_pool, state_length):
     """Initializes population for genetic algorithm
@@ -1013,37 +1027,31 @@ def selection_chances(fitness_fn, population):
     return weighted_sampler(population, fitnesses)
 
 
-def selection_chances_custom(population_dict):
+def selection_chances_custom(population): # population: list[tuple[name: int, weights: list[float], fitness: float]]
     # fit_names = [(generation + x) for x in range(len(population))]
     # fitnesses = map(fitness_fn, fit_names, population)
-    pop_weights = [x[0] for x in population_dict.values()]
-    fit_values = [x[1] for x in population_dict.values()]
-    return weighted_sampler(pop_weights,fit_values)
+    seq = [x[1] for x in population]
+    fit_values = [x[2] for x in population]
+    return weighted_sampler(seq,fit_values)
+
+def normalize(weights):
+    s = sum(weights)
+    return [i/s for i in weights]
 
 def reproduce(x, y):
     n = len(x)
     c = random.randrange(1, n-1)
     return normalize(x[:c] + y[c:])
 
+
 def mutate(x, gene_pool):
-    n = len(x)
-    g = len(gene_pool)
-    c = random.randrange(0, n)
-    r = random.randrange(0, g)
 
-    new_gene = gene_pool[r]
-    return x[:c] + [new_gene] + x[c+1:]
-
-def normalize(weights):
-    s = sum(weights)
-    return [i/s for i in weights]
-
-def mutate_custom(x):
     SIGMA=0.2
     n = len(x)
     c = random.randrange(0, n)
     x[c] =  max(0, random.normalvariate(x[c], SIGMA))
     return normalize(x)
+
 # _____________________________________________________________________________
 # The remainder of this file implements examples for the search algorithms.
 
