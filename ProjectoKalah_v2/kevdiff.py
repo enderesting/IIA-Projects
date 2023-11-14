@@ -964,8 +964,8 @@ def mp_pool_init(queue):
 def genetic_algorithm_custom(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):  # noqa
     """[Figure 4.8]"""
     POP_COUNT = len(population)
-    eval_population = zip(range(POP_COUNT), population) # type: tuple(name:int, weights:list[float])
-    keep_population = [] # type: tuple(name:int, weights:list[float], fitness:float)
+    eval_population = zip(range(POP_COUNT), population) # # type: tuple(name:int, weights:list[float])
+    keep_population = [] # # type: tuple(name:int, weights:list[float], fitness:float)
     #all_known_population_fitness = {} # type: dict(key(weights): list[float], value(fitness): float)
     #def fitness_fn_with_caching(i): # takes in tuple (name, weights), returns tuple (name, weights, fitness)
     #    name, weights = i
@@ -1045,11 +1045,15 @@ def reproduce(x, y):
 
 
 def mutate(x, gene_pool):
+    # SIGMA=0.2
+    # n = len(x)
+    # c = random.randrange(0, n)
+    # x[c] =  max(0, random.normalvariate(x[c], SIGMA))
+    # return normalize(x)
 
-    SIGMA=0.2
     n = len(x)
     c = random.randrange(0, n)
-    x[c] =  max(0, random.normalvariate(x[c], SIGMA))
+    x[c] = random.randrange(0,1)
     return normalize(x)
 
 # _____________________________________________________________________________
