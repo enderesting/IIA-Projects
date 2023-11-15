@@ -1053,7 +1053,7 @@ def mutate(x, gene_pool):
 
     n = len(x)
     c = random.randrange(0, n)
-    x[c] = random.randrange(0,1)
+    x[c] = c+random.uniform(-0.5,0.5)
     return normalize(x)
 
 # _____________________________________________________________________________
