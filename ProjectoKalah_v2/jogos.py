@@ -177,7 +177,6 @@ def alphabeta_cutoff_search_new(state, game, d=4, cutoff_test=None, eval_fn=None
     This version cuts off search and uses an evaluation function."""
 
     player = game.to_move(state)
-    print("OHHHGODDDD",player)
     # Functions used by alphabeta
     def max_value(state, alpha, beta, depth):
         if cutoff_test(state, depth):
@@ -217,8 +216,7 @@ def alphabeta_cutoff_search_new(state, game, d=4, cutoff_test=None, eval_fn=None
     movimentos = game.actions(state)  ## jb
     random.shuffle(movimentos)        ## para dar variabilidade aos jogos #!!!!!!REMEMBER TO TAKE THIS OUT
     for a in movimentos:              ##
-        v = min_value(game.result(state, a), best_score, beta, 1)
-        print("please",player)
+        v = min_value(game.result(state, a), best_score, beta, 1) ## enemy's turn
         if v > best_score:
             best_score = v
             best_action = a
