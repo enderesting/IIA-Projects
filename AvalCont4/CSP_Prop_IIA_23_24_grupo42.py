@@ -20,33 +20,36 @@ from logic import *
 # eg formulas: {expr('A ==> (B & C)'),expr('A')}
 def csp_prop(formulas:Expr):
 
-    def variables(x): # fix this bitch later
-        """Return the set of all propositional symbols in x."""
-        boobs = []
-        for i in x:
-            # print("boo",i)
-            if not isinstance(i, Expr):
-                return []
-            elif is_prop_symbol(i.op):
-                boobs += [f'{i}']
-            else:
-                boobs += [symbol for arg in i.args for symbol in variables({arg})]
-        return list(dict.fromkeys(boobs))
+    def variables(formulas): # fix this bitch later
+        return list(domains(formulas).keys())
     
-    def domains(formulas): # fix this bitch later
+    def domains(formulas):
         """Return the set of all propositional symbols in x."""
         dic = {}
         for expression in formulas:
             # print("boo",i)
             if not isinstance(expression, Expr):
                 return set()
-            elif len(expression.args) == 1 and is_prop_symbol(expression.args[0]): # ~A
-                dic[expression] = [False]
+            elif len(expression.args) == 1 and is_prop_symbol(str(expression.args[0])): # ~A
+                dic[str(expression.args[0])] = [False]
             elif is_prop_symbol(expression.op): # A
-                dic[expression] = [True]
+                dic[expression.op] = [True]
             else:
-                dic += [symbol for arg in expression.args for symbol in variables({arg})]
-        return list(dict.fromkeys(dic))
+                dic = domains_aux(expression,dic)
+        return dic #list(dict.fromkeys(dic))
+
+    def domains_aux(expression,dic):
+        def add_to_dict(arg):
+            if arg not in dic.keys():
+                dic[arg] = [False,True]
+        for arg in expression.args:
+            if is_prop_symbol(arg.op):
+                add_to_dict(arg.op)
+            elif(len(expression.args) == 1 and is_prop_symbol(str(arg.args[0]))):
+                add_to_dict(str(arg.args[0]))
+            else:
+                dic = domains_aux(arg,dic)
+        return dic
     
     def neighbors():
         pass
@@ -54,4 +57,7 @@ def csp_prop(formulas:Expr):
     def constraints():
         pass
     
-    return CSP(variables(formulas),domains(),neighbors(),constraints())
+    return CSP(variables(formulas),domains(formulas),neighbors(),constraints())
+
+x={expr('A ==> (B & C)'),expr('A')}
+print(csp_prop(x))
