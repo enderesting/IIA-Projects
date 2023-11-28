@@ -4,7 +4,6 @@ Gonçalo Fernandes fc58194
 Github repo: https://github.com/enderesting/IIA-Projects
 '''
 from csp import *
-from utils import *
 from logic import *
 
 def csp_prop(formulas:{Expr}):
@@ -18,17 +17,17 @@ def csp_prop(formulas:{Expr}):
         returns a list of variables
         e.g. ['A', 'B', 'C']
         """
-        def prop_symbols(x):
-            """Return the set of all propositional symbols in x."""
+        def prop_symbols_as_str(x):
+            """Return the set of all propositional symbols in x, differs from prop_symbols in logic.py since it's kept in string form"""
             if not isinstance(x,Expr):
                 return set()
             elif is_prop_symbol(x.op):
                 return {str(x)}
             else:
-                return {symbol for arg in x.args for symbol in prop_symbols(arg)}
+                return {symbol for arg in x.args for symbol in prop_symbols_as_str(arg)}
         vares = set()
         for f in formulas:
-            vares.update(prop_symbols(f))
+            vares.update(prop_symbols_as_str(f))
         return sorted(vares)
 
     vares = variables()
@@ -101,30 +100,3 @@ def csp_prop(formulas:{Expr}):
         return result
     
     return CSP(vares,domains(),neighbors(),constraints)
-
-
-x = expr('(A ==> (C & B))')
-y = expr('A')
-z = [x,y]
-
-kb = PropKB()
-for i in z:
-    exp = expr(i)
-    print(exp)
-    kb.tell(exp)
-
-print(kb.clauses)
-
-print('\n now the csp')
-# print(kb.ask_if_true(expr('B & A')))
-# print(kb.ask_if_true(expr('~B & A')))
-
-csp_p = csp_prop(kb.clauses)
-
-print(z)
-print(csp_p.variables)
-print(csp_p.domains)
-print(csp_p.neighbors)# it repeats stuff
-print(csp_p.constraints)
-assignment = backtracking_search(csp_p)
-print('assignment = ',assignment )
