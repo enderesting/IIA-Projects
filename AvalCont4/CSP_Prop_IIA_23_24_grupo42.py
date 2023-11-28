@@ -7,17 +7,6 @@ from csp import *
 from utils import *
 from logic import *
 
-"""
-    A CSP is specified by the following inputs:
-        variables        A list of variables; each is atomic (e.g. int or string).
-        domains     A dict of {var:[possible_value, ...]} entries.
-        neighbors   A dict of {var:[var,...]} that for each variable lists
-                    the other variables that participate in constraints.
-        constraints A function f(A, a, B, b) that returns true if neighbors
-                    A, B satisfy the constraint when they have values A=a, B=b
-"""
-
-# eg formulas: {expr('A ==> (B & C)'),expr('A')}
 def csp_prop(formulas:{Expr}):
 
     kb = PropKB()
@@ -31,18 +20,18 @@ def csp_prop(formulas:{Expr}):
         """
         def prop_symbols(x):
             """Return the set of all propositional symbols in x."""
-            if not isinstance(x, Expr):
+            if not isinstance(x,Expr):
                 return set()
             elif is_prop_symbol(x.op):
                 return {str(x)}
             else:
                 return {symbol for arg in x.args for symbol in prop_symbols(arg)}
-        vars = set()
+        vares = set()
         for f in formulas:
-            vars.update(prop_symbols(f))
-        return sorted(vars)
+            vares.update(prop_symbols(f))
+        return sorted(vares)
 
-    vars = variables()
+    vares = variables()
 
     def domains():
         """
@@ -50,15 +39,14 @@ def csp_prop(formulas:{Expr}):
         e.g. {'A': [False, True], 'B': [False, True], 'C': [False, True]}
         """
         dic = {}
+        for i in vares:
+            dic[i] = [False, True]
         literals = [x for x in kb.clauses if len(disjuncts(x)) == 1]
         for l in literals:
             if l.op == '~':
-                dic[str(l.args[0])] = [False]
+                dic[str(l.args[0])] = [value for value in dic[str(l.args[0])] if value is False]
             else:
-                dic[l.op] = [True]
-        for v in vars:
-            if str(v) not in dic:
-                dic[v] = [False,True]
+                dic[l.op] = [value for value in dic[l.op] if value is True]
         return dic
     
     def extract_prop(literal:Expr):
@@ -66,12 +54,12 @@ def csp_prop(formulas:{Expr}):
         given ~A returns A
         given A returns A
         make sure the input is actually a literal
+        returns a string!
         """
         if len(literal.args) == 1 and is_prop_symbol(str(literal.args[0])):
-            return literal.args[0]
+            return str(literal.args[0])
         elif is_prop_symbol(literal.op):
-            return literal
-    
+            return str(literal)
 
     def neighbors():
         """
@@ -80,7 +68,7 @@ def csp_prop(formulas:{Expr}):
         e.g. {'A': ['B', 'C'], 'B': ['A'], 'C': ['A']}
         """
         nbs = {}
-        for i in vars: 
+        for i in vares: 
             nbs[i] = [] 
         for clause in kb.clauses: #[(B | ~A), (C | ~A), ~A]
             lit_list = disjuncts(clause) # (Z | ~A) -> [Z, ~A]
@@ -88,55 +76,50 @@ def csp_prop(formulas:{Expr}):
                 this_lit = extract_prop(lit)
                 for other in lit_list:
                     other_lit = extract_prop(other)
-                    if other_lit is not this_lit and other_lit not in nbs[str(this_lit)]:            
-                                nbs[str(this_lit)].append(str(other_lit)) 
+                    if other_lit is not this_lit and other_lit not in nbs[this_lit]:            
+                        nbs[this_lit].append(other_lit) 
+                        nbs[this_lit].sort()
         return nbs
 
     def constraints(var1, var1_value, var2, var2_value):
         """
         given var1 var2 and its respective values, checks if it can be satisfied in the current kb.
+        or rather, if it "doesn't contradict with anything in the kb"
         """
         model = {expr(var1) : var1_value, expr(var2) : var2_value}
-        # var1 = '~'+var1 if not var1_value else var1
-        # var2 = '~'+var2 if not var2_value else var2
-        # final = var1 + ' & ' + var2
-        # huge = expr(final)
-        # result = kb.ask_if_true(huge)
-        # return result
 
         result = True
         for clause in kb.clauses:
            disjunction = disjuncts(clause)
            if len(disjunction) == 2:
-               prop1, prop2 = disjunction[0], disjunction[1]
-               prop1 = prop1.op if len(prop1.args) == 0 else str(prop1.args[0])
-               prop2 = prop2.op if len(prop2.args) == 0 else str(prop2.args[0])
+               p1, p2 = disjunction[0], disjunction[1]
+               prop1 = extract_prop(p1)
+               prop2 = extract_prop(p2)
                if (var1 == prop1 or var1 == prop2) and (var2 == prop1 or var2 == prop2):
-                   satisfies = False if not pl_true(clause, model) else True # if it's true/none, returns satisfies
+                   satisfies = pl_true(clause,model) # False if not pl_true(clause, model) else True # if it's true/none, returns satisfies
                    result = result and satisfies
         return result
     
-    return CSP(vars,domains(),neighbors(),constraints)
-
-# x={expr('A ==> (B & C)'),expr('A')}
-# print(csp_prop(x))
+    return CSP(vares,domains(),neighbors(),constraints)
 
 
-x = expr('(A ==> (B & C))')
-y = expr('A|~A')
+x = expr('(A ==> (C & B))')
+y = expr('A')
 z = [x,y]
-csp_p = csp_prop(z)
-# print(tt_entails(expr('A ==> (B & C)'), expr('~A | B | C'),True))
 
 kb = PropKB()
 for i in z:
-    kb.tell(i)
+    exp = expr(i)
+    print(exp)
+    kb.tell(exp)
+
 print(kb.clauses)
+
 print('\n now the csp')
 # print(kb.ask_if_true(expr('B & A')))
 # print(kb.ask_if_true(expr('~B & A')))
 
-
+csp_p = csp_prop(kb.clauses)
 
 print(z)
 print(csp_p.variables)
