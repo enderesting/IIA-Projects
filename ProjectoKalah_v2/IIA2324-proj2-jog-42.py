@@ -20,43 +20,6 @@ Github repo: https://github.com/enderesting/IIA-Projects
 # from jogos import *
 # from testing import *
 from kalah import KalahState
-# from jogos import alphabeta_cutoff_search_new
-# class Jogador():
-#     def __init__(self, nome, fun):
-#         self.nome = nome
-#         self.fun = fun
-#     def display(self):
-#         print(self.nome+" ")
-        
-# class JogadorAlfaBeta(Jogador):
-#     def __init__(self, nome, depth,fun_eval):
-#         self.nome = nome
-#         self.fun = lambda game, state: alphabeta_cutoff_search_new(state,game,depth,eval_fn=fun_eval)
-
-
-# PebblePlayer = JogadorAlfaBeta("PebbleReaper",2,)
-
-# # O primeiro é o 0 e o segundo é o 1 (para jogos de dois jogadores).
-# def linearPond(estado,jogador,pesos,funcoes,win):
-#     """Função que pega no estado e no jogador e se fim do jogo devolve win*utilidade (* 1 ou -1, dependendo do jogador)
-#     senão devolve a combinação linear de pesos e features."""
-#     if estado.is_game_over():
-#         aux = estado.result()
-#         return aux*win if jogador == 0 else aux*-win
-#     # print("pit_total:",pit_total(estado,proxjog))
-#     # print("side_total: ", side_total(estado,proxjog))
-#     # print("chance_to_clear_right_most:",chance_to_clear_right_most(estado,proxjog))
-#     # print("congregate_seeds: ", congregate_seeds(estado,proxjog))
-#     return sum([p*f(estado,jogador) for (p,f) in zip(pesos,funcoes)])
-
-
-# class JogadorLinearPond(JogadorAlfaBeta):
-#     """SubClasse dos jogadores alfabeta que usa o combinador linear como função de avaliação.
-#     Recebe para além do nome e da profundidade, a lista de pesos e das funções-features, criando fun_eval"""
-#     def __init__(self, nome, depth,weights,features,win_value):
-#         self.nome = nome
-#         fun_eval=lambda estado,jogador: linearPond(estado,jogador,weights,features,win_value)
-#         self.fun = lambda game, state: alphabeta_cutoff_search_new(state,game,depth,eval_fn=fun_eval)
 
 def func_42(estado,jogador):
     if estado.is_game_over():
